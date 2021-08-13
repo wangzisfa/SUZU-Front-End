@@ -134,7 +134,7 @@ class HomePage extends React.Component {
                         <div className="content-full-left">
                             <div className="home-content-title">
                                 <ReactRotatingText
-                                    items={["即时通讯 ? ", "JUST KIDDING!"]}
+                                    items={["即时通讯 ? ", "Suzumiya Haruhi"]}
                                     pause='2000'
                                     typingInterval="100"/>
                             </div>
