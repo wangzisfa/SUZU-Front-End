@@ -1,6 +1,6 @@
 import React from "react";
 import Avatar from "antd/es/avatar/avatar";
-import {Button, Card, Col, Row, Collapse, List, Statistic, Table} from "antd";
+import {Button, Card, Col, Row, Collapse, List, Statistic, Table, Modal, Form, Input, Select} from "antd";
 import {
     CaretRightOutlined,
     TeamOutlined,
@@ -9,9 +9,12 @@ import {
 import {bindActionCreators} from "@reduxjs/toolkit";
 import * as userProfileActions from "../../actions/userProfile";
 import {connect} from "react-redux";
-import {userIconBaseURL} from '../../constant/baseUrl'
+import {baseUrl, userIconBaseURL} from '../../constant/baseUrl'
+import {Option} from "antd/es/mentions";
+import {updateUserProfile} from "../../requests/posts";
 
 
+const { TextArea } = Input
 const { Column } = Table;
 const { Panel } = Collapse;
 
@@ -19,18 +22,13 @@ class UserHomeContent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentConversation: [{
-                title: "wangzisfa"
-            }, {
-                title: "bottas"
-            }, {
-                title: "hamilton"
-            }, {
-                title: "guardian"
-            }, {
-                title: "suzumiya"
-            }]
+            showUserProfileModal: false
         }
+    }
+
+    handleUserProfile() {
+        this.setState({showUserProfileModal: true});
+
     }
 
     card() {
@@ -46,7 +44,8 @@ class UserHomeContent extends React.Component {
                      flexDirection: "column",
                      boxShadow: "0px 1px 3px 0px rgba(0, 0, 255, .2)",
                      borderRadius: "10px",
-                     marginTop: "10px"}}>
+                     marginTop: "10px"
+                 }}>
                 <div className="user-cover" style={{backgroundColor: "grey", height: "150px"}}>
                     改变背景颜色
                 </div>
@@ -76,7 +75,7 @@ class UserHomeContent extends React.Component {
                             <Panel header="查看详细资料" key="1" className="user-profile-collapse-panel">
                                 <Row gutter={16}>
                                     <Col span={12}>
-                                        <Statistic title="性别" value="男" />
+                                        <Statistic title="性别" value={user.gender} />
                                     </Col>
                                 </Row>
 
@@ -86,7 +85,7 @@ class UserHomeContent extends React.Component {
                     </div>
                     {/*marginLeft: "1275px", marginTop: "100px"*/}
                     <div style={{margin: "0 20px 20px auto", alignSelf: "flex-end"}}>
-                        <Button>
+                        <Button onClick={this.handleUserProfile.bind(this)}>
                             编辑个人资料
                         </Button>
                     </div>
@@ -97,8 +96,22 @@ class UserHomeContent extends React.Component {
         )
     }
 
+    userProfileFormSubmit(e) {
+        console.log(e);
+        this.setState({showUserProfileModal: false});
+        let auth = localStorage.getItem("authorization")
+        let res = updateUserProfile(baseUrl + "/updateUserProfile", e, auth);
+        res.then(r => {
+            console.log(r);
+        })
+            .catch(e => {
+                console.log(e);
+            })
+    }
+
     profileMain() {
         const data = this.props.friends;
+
 
         return (
             <div className="profile-main"
@@ -109,6 +122,62 @@ class UserHomeContent extends React.Component {
                      borderRadius: "2px",
                      marginTop: "10px",
                      justifyContent: "center", }}>
+
+                <Modal visible={this.state.showUserProfileModal}
+                       onCancel={() => {
+                           this.setState({showUserProfileModal: false});
+                       }}
+                       title="编辑个人资料"
+                       footer={null}
+                >
+                    <Form onFinish={this.userProfileFormSubmit.bind(this)}
+
+                    >
+                        {/*<Form.Item*/}
+                        {/*    name="username"*/}
+                        {/*    style={{margin: "20px"}}*/}
+                        {/*>*/}
+                        {/*    <Input placeholder="修改用户名"/>*/}
+                        {/*</Form.Item>*/}
+                        <Form.Item name="gender"
+                                   style={{margin: "20px"}}
+                        >
+                            <Select
+                                placeholder="性别"
+                                onChange={(value) => {
+                                    switch (value) {
+                                    }
+                                }}
+                                allowClear
+                            >
+                                <Option value="M">男的</Option>
+                                <Option value="F">女的</Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name="sign"
+                                   style={{margin: "20px"}}
+                        >
+                            <TextArea cols="4" placeholder="签名"/>
+                        </Form.Item>
+                        <Form.Item style={{margin: "20px"}}
+                        >
+                            <Button type="primary"
+                                    htmlType="submit"
+                                    style={{margin: "0 20px 0 0"}}
+                            >
+                                提交
+                            </Button>
+                            <Button type="primary"
+                                    onClick={() => {
+                                        this.setState({showUserProfileModal: false});
+                                    }}
+                            >
+                                取消
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                </Modal>
+
                 <div className="current-conversation"
                      style={{
                          border: "2px solid rgba(255, 255, 255, 0.6)",
@@ -134,7 +203,7 @@ class UserHomeContent extends React.Component {
                                     <List.Item.Meta
                                         avatar={<Avatar style={{margin: "10px"}}>USER</Avatar>}
                                         title={<a href="/wwww">{item.user.username}</a>}
-                                        description={item.user.sign}
+                                        description={item.user.sign ? item.user.sign : "这个人没有填简介啊~~~ "}
                                     />
                                 </List.Item>
                             )}

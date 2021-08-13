@@ -2,7 +2,7 @@ import React from "react";
 import Search from "antd/es/input/Search";
 import {Button, Card, Divider, Form, List} from "antd";
 import Text from "antd/es/typography/Text";
-import {getUserList, subscribeUser} from "../../requests/query";
+import {getUserList, searchUser, subscribeUser} from "../../requests/query";
 import {baseUrl} from "../../constant/baseUrl";
 import {connect} from "react-redux";
 import './style.css'
@@ -130,6 +130,22 @@ class FriendHome extends React.Component {
         }, 3000);
     }
 
+    handleSearchUser(e) {
+        if (e === '') {
+            alert("请先输入");
+        } else {
+            let res = searchUser(baseUrl + "/search", e);
+            res.then(r => {
+                console.log(r);
+                this.setState({searchedUsers: r.data})
+            })
+                .catch(e => {
+                    console.log(e);
+                })
+        }
+
+    }
+
     render() {
         const {users, loadMore, searchedUsers, subscribeLoading} = this.state;
 
@@ -145,12 +161,10 @@ class FriendHome extends React.Component {
                     overflow: "auto"
                 }}
                 >
-                    <div style={{height: "50%"}}>
+                    <div>
                         <Search placeholder="搜索用户"
                                 enterButton
-                                onSearch={(e) => {
-                                    console.log(e);
-                                }}
+                                onSearch={this.handleSearchUser.bind(this)}
                                 style={{
                                     marginTop: "40px"
                                 }}/>
@@ -158,11 +172,37 @@ class FriendHome extends React.Component {
                             className="list"
                             dataSource={searchedUsers}
                             renderItem={item => (
-                                <List.Item>
-                                    <Text>{"hello" + " " + item.username}</Text>
+                                <List.Item actions={
+                                    [
+                                        <div style={{
+                                            position: "absolute" ,
+                                            bottom: "80px" ,
+                                            left: "250px" ,
+                                        }}>
+                                            <Button
+                                                loading={subscribeLoading}
+                                                onClick={() => {
+                                                    this.handleSubscribe(item);
+                                                }}
+                                            >
+                                                订阅
+                                            </Button>
+                                        </div>
+                                    ]}
+                                    style={{margin: "20px 0 0 0"}}
+                                >
+                                    <Card title={
+                                        <div style={{display: "flex"}}>
+                                            <div>
+                                                {item.username}
+                                            </div>
+                                        </div>
+                                    } bordered={false}>
+                                        {item.sign === null ? '这个人没有填简介啊~~~ ' : item.sign}
+                                    </Card>
                                 </List.Item>
                             )}
-                            grid={{ column: 4 }}
+                            grid={{ gutter: 16, column: 4 }}
                         />
                     </div>
                     <Divider />

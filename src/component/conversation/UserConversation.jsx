@@ -154,12 +154,12 @@ class UserConversation extends React.Component{
                                 </Paragraph>
                             </Card>
                         </div>
-                        <button onClick={() => {
-                            console.log(this.props);
-                            // console.log(username);
-                        }}>
+                        {/*<button onClick={() => {*/}
+                        {/*    console.log(this.props);*/}
+                        {/*    // console.log(username);*/}
+                        {/*}}>*/}
 
-                        </button>
+                        {/*</button>*/}
                         {
                             this.state.messageBox
                         }

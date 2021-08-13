@@ -62,3 +62,11 @@ export function subscribeUser(url, data) {
         }
     })
 }
+
+export function searchUser(url, data) {
+    return axios.get(url, {
+        params: {
+            username: data
+        }
+    })
+}

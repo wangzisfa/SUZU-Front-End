@@ -236,7 +236,7 @@ class UserHomePage extends React.Component {
                             </Menu.Item>
                         </Menu>
                         <div style={{color: "white",
-                            margin: "570px 0 0 0" ,
+                            margin: "550px 0 0 0" ,
                             display: "flex" ,
                             justifyContent: "center" ,
                         }}>
