@@ -1,25 +1,59 @@
-import logo from './logo.svg';
-import './App.css';
+import {BrowserRouter, Route, Switch} from "react-router-dom";
+import publicRoutes from "./routes/publicRoutes";
+import privateRoutes from "./routes/privateRoutes";
+import AuthRoute from "./component/AuthRoute";
+import adminRoutes from "./routes/adminRoutes";
+import React from "react";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+
+export default class App extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+
+    render() {
+
+        return (
+            <BrowserRouter >
+                <Switch>
+                    {publicRoutes.map(({path, component, ...route}) =>
+                        <Route key={path} path={path} {...route} render={(routeProps) => {
+                            // console.log(routeProps)
+                            // console.log(component)
+                            const Component = component;
+                            return <Component {...routeProps} />
+                        }}/>
+                    )}
+                    {privateRoutes.map(
+                        (route) => <AuthRoute key={route.path} {...route} user={getAuthRoleFromLocalStorage()}/>
+                    )}
+                    {adminRoutes.map(
+                        (route) => <AuthRoute key={route.path} {...route} user={getAuthRoleFromLocalStorage()} />
+                    )}
+                </Switch>
+            </BrowserRouter>
+        );
+    }
+
+
 }
 
-export default App;
+function getAuthRoleFromLocalStorage() {
+    return {
+        auth: localStorage.getItem("authorization") ,
+        role: localStorage.getItem("role")
+    }
+}
+
+// const mapStateToProps = (state) => {
+//     console.log(state);
+//     return {
+//         role: state.role ,
+//         auth: state.auth
+//     }
+// }
+//
+// export default connect(mapStateToProps)(App)
+

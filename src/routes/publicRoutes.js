@@ -1,0 +1,18 @@
+import HomePage from "../pages/base/HomePage";
+
+const publicRoutes = [
+    {
+        path: '/' ,
+        component: HomePage ,
+        exact: true
+    } ,
+    // {
+    //     path: '/home' ,
+    //     component:  UserHomePage ,
+    //     exact: true ,
+    //     role: 'user' ,
+    //     backUrl: '/'
+    // }
+]
+
+export default publicRoutes;
