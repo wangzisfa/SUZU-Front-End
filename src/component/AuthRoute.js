@@ -1,5 +1,5 @@
 import {Redirect, Route} from "react-router-dom";
-import {isTokenExpired} from "../requests/query";
+    import {isTokenExpired} from "../requests/query";
 
 export default function AuthRoute(props) {
     const {

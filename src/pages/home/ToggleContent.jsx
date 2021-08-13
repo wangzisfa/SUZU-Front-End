@@ -5,6 +5,11 @@ import {connect} from "react-redux";
 import FriendHome from "../../component/friends/FriendHome";
 import UserConversation from "../../component/conversation/UserConversation";
 import {withRouter} from "react-router-dom";
+import {bindActionCreators} from "@reduxjs/toolkit";
+import * as userMessageActions from "../../actions/userMessage";
+import * as formVisibleActions from "../../actions/formVisible";
+import * as tokenReceivedActions from "../../actions/isTokenReceived";
+import * as tokenSearchActions from "../../actions/tokenSearch";
 
 
 class ToggleContent extends React.Component {
@@ -23,6 +28,7 @@ class ToggleContent extends React.Component {
                 if (key === "1") {
                     r = <FriendHome />
                 } else if (key === "2") {
+                    this.props.tokenReceivedActions.setTokenReceived(false);
                     r = <UserConversation conversationFormVisible={true}/>
                 } else {
                     // this.props.history.push("/conversation");
@@ -51,9 +57,16 @@ const mapStateToProps = (state) => {
         sidebarMenuKey: state.sidebarMenuKey ,
         user: state.userProfile ,
         friends: state.friendsProfile ,
+        tokenReceived: state.tokenReceived ,
     }
 }
-export default connect(mapStateToProps)(withRouter(ToggleContent))
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        tokenReceivedActions: bindActionCreators(tokenReceivedActions, dispatch) ,
+    }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(ToggleContent))
 
 // export function toggleContent(e) {
 //     console.log(e)

@@ -1,35 +1,28 @@
 import React from "react";
 import Search from "antd/es/input/Search";
-import {Button, Card, List} from "antd";
+import {Button, Card, Divider, Form, List} from "antd";
 import Text from "antd/es/typography/Text";
-import {getUserList} from "../../requests/query";
+import {getUserList, subscribeUser} from "../../requests/query";
 import {baseUrl} from "../../constant/baseUrl";
 import {connect} from "react-redux";
+import './style.css'
+
 
 class FriendHome extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            users: [{
-                username: "wangzisfa" ,
-                gender: "male"
-            } ,{
-                username: "wangzisfa" ,
-                gender: "male"
-            } ,{
-                username: "wangzisfa" ,
-                gender: "male"
-            } ,{
-                username: "wangzisfa" ,
-                gender: "male"
-            }] ,
-            loading: false ,
+            users: [] ,
+            searchedUsers: [] ,
+            loadMore: false ,
             currentUserListIndex: 1 ,
-            pageItemNum: 8
+            pageItemNum: 8 ,
+            subscribeLoading: false ,
+            buttonArrayLength: 0
         }
     }
 
-    componentDidMount() {
+    userList() {
         const currentUserListIndex = this.state.currentUserListIndex;
         const pageItemNum = this.state.pageItemNum;
         const currentUser = this.props.user;
@@ -43,10 +36,27 @@ class FriendHome extends React.Component {
         let get = getUserList(baseUrl + "/getUserList", data);
         get.then(r => {
             console.log(r);
+            let arr = [...this.state.users];
+            r.data.map(user => arr.push(user));
+
+
+            this.setState(() => {
+                return {
+                    users: arr ,
+                }
+            })
         })
             .catch(e => {
                 console.log(e);
             });
+    }
+
+    componentDidMount() {
+        this.userList();
+    }
+
+    componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS) {
+        // this.userList();
     }
 
     enterLoading = () => {
@@ -55,7 +65,7 @@ class FriendHome extends React.Component {
 
         this.setState(() => {
             return {
-                loading: true,
+                loadMore: true,
                 currentUserListIndex: this.state.currentUserListIndex + 1
             }
         }, () => {
@@ -67,26 +77,75 @@ class FriendHome extends React.Component {
             let get = getUserList(baseUrl + "/getUserList", data);
             get.then(r => {
                 console.log(r);
+                this.setState({loadMore: false});
+                if (r.data.length === 0) {
+                    alert("没有更多了");
+                }
+                let arr = [...this.state.users];
+                r.data.map(user => arr.push(user));
+
+
+                this.setState(() => {
+                    return {
+                        users: arr ,
+                    }
+                })
             })
                 .catch(e => {
                     console.log(e);
                 })
         });
         setTimeout(() => {
-            this.setState({loading: false});
+            this.setState({loadMore: false});
         }, 6000);
     };
 
-    render() {
-        const {users, loading} = this.state;
+    handleSubscribe(item) {
+        console.log(item);
 
+
+        this.setState(() => {
+            return {
+                subscribeLoading: true ,
+            }
+        }, () => {
+            let data = {
+                "subscribeName": this.props.user.username ,
+                "subscribeTo": item.username
+            }
+            console.log(data);
+            let res = subscribeUser(baseUrl + "/subscribeUser", data);
+            res.then(r => {
+                console.log(r);
+                this.setState({subscribeLoading: false});
+                alert("订阅成功");
+            })
+                .catch(e => {
+                    console.log(e);
+                })
+        })
+
+        setTimeout(() => {
+            this.setState({subscribeLoading: false});
+        }, 3000);
+    }
+
+    render() {
+        const {users, loadMore, searchedUsers, subscribeLoading} = this.state;
+
+        console.log(this.state);
         return (
             <>
-                <div style={{width: '100%',
-                         display: "flex",
-                         flexDirection: "column" ,
-                         justifyContent: "center"}}>
-                    <div>
+                <div style={{
+                    width: '100%',
+                    display: "flex",
+                    flexDirection: "column" ,
+                    height: "100%" ,
+                    justifyContent: "flex-start" ,
+                    overflow: "auto"
+                }}
+                >
+                    <div style={{height: "50%"}}>
                         <Search placeholder="搜索用户"
                                 enterButton
                                 onSearch={(e) => {
@@ -97,29 +156,56 @@ class FriendHome extends React.Component {
                                 }}/>
                         <List
                             className="list"
-                            dataSource={users}
+                            dataSource={searchedUsers}
                             renderItem={item => (
                                 <List.Item>
-                                    <Text>{"hello" + " " + item}</Text>
+                                    <Text>{"hello" + " " + item.username}</Text>
                                 </List.Item>
                             )}
-                            grid={{ gutter: 16, column: 4 }}
+                            grid={{ column: 4 }}
                         />
                     </div>
-                    <div className="site-card-wrapper">
+                    <Divider />
+                    <div className="site-card-wrapper"
+                         style={{height: "50%", width: "99%"}}
+                    >
                         <List
                             className="list"
                             dataSource={users}
                             renderItem={item => (
-                                <List.Item>
-                                    <Card title="Card title" bordered={false}>
-                                        Card content
+                                <List.Item actions={
+                                    [
+                                        <div style={{
+                                            position: "absolute" ,
+                                            bottom: "80px" ,
+                                            left: "250px" ,
+                                        }}>
+                                            <Button
+                                                loading={subscribeLoading}
+                                                onClick={() => {
+                                                    this.handleSubscribe(item);
+                                                }}
+                                            >
+                                                订阅
+                                            </Button>
+                                        </div>
+                                    ]}
+                                           // style={{display: "flex"}}
+                                >
+                                    <Card title={
+                                        <div style={{display: "flex"}}>
+                                            <div>
+                                                {item.username}
+                                            </div>
+                                        </div>
+                                    } bordered={false}>
+                                        {item.sign === null ? '这个人没有填简介啊~~~ ' : item.sign}
                                     </Card>
                                 </List.Item>
                             )}
                             grid={{ gutter: 16, column: 4 }}
                         />
-                        <Button type="primary" loading={loading} onClick={() => this.enterLoading()}>
+                        <Button type="primary" loading={loadMore} onClick={() => this.enterLoading()}>
                             加载更多
                         </Button>
                     </div>

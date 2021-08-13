@@ -16,6 +16,7 @@ import {baseUrl} from "../../constant/baseUrl";
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs'
 import SockJsClient from 'react-stomp'
+import Title from "antd/es/typography/Title";
 
 
 const offset = -3;
@@ -39,7 +40,10 @@ class UserConversation extends React.Component{
                     username: "陌生人"
                 }
             } ,
-            messageBox: []
+            messageBox: [] ,
+            endConversationButtonClicked: false ,
+            conversationChanged: false ,
+            conversationTokenGenerateButtonLoading: false
         }
 
         console.log("constructor        ")
@@ -64,25 +68,38 @@ class UserConversation extends React.Component{
         const user = this.props.user;
         const conversationFormVisible = this.props.conversationFormVisible;
         const messageReceived = this.state.messageReceived;
-        const username = this.props.message.userSend.username;
+        // const username = this.props.message.userSend.username;
 
         const message = this.props.message;
+        // this.setState({currentSidebarMenuKey: this.props.sidebarMenuKey});
 
-
-
-
-        if (conversationFormVisible) {
-            friend = {
-                user: {
-                    username: "陌生人"
+        if (this.state.conversationChanged) {
+            this.setState(() => {
+                return {
+                    conversationChanged: false ,
+                    messageBox: []
                 }
-            }
-
-        } else {
-            friend = this.props.friends[offset + key];
+            })
         }
 
+        // if (conversationFormVisible) {
+        //     friend = {
+        //         user: {
+        //             username: "陌生人"
+        //         }
+        //     }
+        //
+        // } else {
+        //     friend = this.props.friends[offset + key];
+        // }
+
         if (messageReceived) {
+            let username;
+            if (conversationFormVisible) {
+                username = this.props.message.messageSender;
+            } else {
+                username = this.props.message.userSend.username;
+            }
             let messageBox = this.state.messageBox;
             let newArray = [...messageBox];
             console.log(this.props);
@@ -139,7 +156,7 @@ class UserConversation extends React.Component{
                         </div>
                         <button onClick={() => {
                             console.log(this.props);
-                            console.log(username);
+                            // console.log(username);
                         }}>
 
                         </button>
@@ -154,36 +171,72 @@ class UserConversation extends React.Component{
 
     handleSearchToken(e) {
         console.log(e);
-        this.props.tokenSearchActions.setTokenSearch(e)
+        this.props.tokenSearchActions.setTokenSearch(e);
+        localStorage.setItem("conversationToken", e);
+        this.handleCancel();
     }
 
     tokenService() {
         const conversationFormVisible = this.props.conversationFormVisible;
         const tokenReceived = this.props.tokenReceived;
-        // console.log("conversationFormVisible: ", conversationFormVisible);
-        // console.log("tokenReceived: ", tokenReceived);
+        const endConversationButtonClicked = this.state.endConversationButtonClicked;
+        console.log("conversationFormVisible: ", conversationFormVisible);
+        console.log("tokenReceived: ", tokenReceived);
 
         if (conversationFormVisible && !tokenReceived) {
+            if (endConversationButtonClicked) {
+                let res = getConversationToken(baseUrl + "/conversationToken", {username: this.props.user.username})
+                res.then(r => {
+                    this.props.tokenReceivedActions.setTokenReceived(true);
+                    if (localStorage.getItem("conversationToken") !== r.data) {
+                        localStorage.setItem("conversationToken", r.data);
+                    }
+
+                    this.setState({endConversationButtonClicked: false});
+                    console.log(r);
+                })
+                    .catch(e => {
+                        console.log(e);
+                    })
+            }
+
+        }
+    }
+
+    handleGenerateToken() {
+        const conversationFormVisible = this.props.conversationFormVisible;
+        const tokenReceived = this.props.tokenReceived;
+        const endConversationButtonClicked = this.state.endConversationButtonClicked;
+        console.log("conversationFormVisible: ", conversationFormVisible);
+        console.log("tokenReceived: ", tokenReceived);
+
+        if (conversationFormVisible && !tokenReceived) {
+            // if (endConversationButtonClicked) {
             let res = getConversationToken(baseUrl + "/conversationToken", {username: this.props.user.username})
             res.then(r => {
                 this.props.tokenReceivedActions.setTokenReceived(true);
                 if (localStorage.getItem("conversationToken") !== r.data) {
                     localStorage.setItem("conversationToken", r.data);
                 }
+
+                this.setState({endConversationButtonClicked: false});
                 console.log(r);
             })
                 .catch(e => {
                     console.log(e);
                 })
+            // }
+            this.setState({conversationTokenGenerateButtonLoading: true});
+            setTimeout(() => {
+                this.setState({conversationTokenGenerateButtonLoading: false})
+            }, 1500);
         }
     }
-
-
 
     componentDidMount() {
         console.log("rendering didmount     ")
 
-        this.tokenService();
+        // this.tokenService();
 
         // this.stompConnectAndSubscribe();
         // stompConnectAndSubscribe('/topic/channel/' + friend.token, this.handleReceiveMessage);
@@ -191,11 +244,13 @@ class UserConversation extends React.Component{
 
     componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS) {
         console.log("rendering didupdate      ")
-        this.tokenService();
+        // this.tokenService();
         // this.stompConnectAndSubscribe();
 
 
-
+        if (prevProps.sidebarMenuKey !== this.props.sidebarMenuKey) {
+            this.setState({conversationChanged: true});
+        }
         // stompClient.connect({}, function (e) {
         //     console.log(e);
         //     stompClient.subscribe('/topic/channel/' + "asdfasdfgashjdgfjkasdf", subscribeCallback)
@@ -210,6 +265,9 @@ class UserConversation extends React.Component{
         let key = parseInt(this.props.sidebarMenuKey.key);
         let friend = this.props.friends[offset + key];
         const user = this.props.user;
+        const conversationFormVisible = this.props.conversationFormVisible;
+        const conversationToken = localStorage.getItem("conversationToken");
+
         // console.log(this.props.message);
         let message = this.props.message.message;
         let jsonMessage = {
@@ -219,7 +277,18 @@ class UserConversation extends React.Component{
         }
         // console.log(JSON.stringify(jsonMessage));
         // stompSendMessage("/app/channel/" + "asdfasdfgashjdgfjkasdf", message);
-        this.clientRef.sendMessage('/app/channel/' + friend.token, JSON.stringify(jsonMessage));
+
+        let strangerJsonMessage = {
+            message: message ,
+            stranger: true ,
+            messageSender: user.username
+        }
+        if (conversationFormVisible) {
+            this.clientRef.sendMessage('/app/channel/' + conversationToken, JSON.stringify(strangerJsonMessage));
+        } else {
+            this.clientRef.sendMessage('/app/channel/' + friend.token, JSON.stringify(jsonMessage));
+        }
+
 
 
     }
@@ -248,28 +317,48 @@ class UserConversation extends React.Component{
         console.log(this.props)
         return (
             <div style={{display: 'flex', flexDirection: "column", border: "2px solid gray", margin: "10px"}}>
-                <SockJsClient url="http://localhost:8080/ws"
-                              topics={['/topic/channel/' + friend.token]}
-                              onMessage={this.handleReceiveMessage.bind(this)}
-                              ref={(client) => {this.clientRef = client}}
-                />
+                {/*<SockJsClient url="http://localhost:8080/ws"*/}
+                {/*              topics={['/topic/channel/' + friend.token]}*/}
+                {/*              onMessage={this.handleReceiveMessage.bind(this)}*/}
+                {/*              ref={(client) => {this.clientRef = client}}*/}
+                {/*/>*/}
                 {conversationFormVisible ?
-                    <Modal
-                        title="直接聊"
-                        visible={formVisible}
-                        onCancel={this.handleCancel}
-                        footer={null}
-                    >
-                        <Card title="邀请加入">
-                            <Input value={conversationToken} addonAfter={<ArrowRightOutlined onClick={this.handleCancel}/>}/>
-                            <Text style={{color: "rgba(0,0,0,0.4)"}}>直接复制当前token即可</Text>
-                        </Card>
-                        <Divider />
-                        <Card title="加入一个">
-                            <Input.Search style={{}} defaultValue="" onSearch={this.handleSearchToken.bind(this)}/>
-                        </Card>
-                    </Modal> :
-                    null
+                    <div>
+                        <SockJsClient url="http://localhost:8080/ws"
+                                      topics={['/topic/channel/' + conversationToken]}
+                                      onMessage={this.handleReceiveMessage.bind(this)}
+                                      ref={(client) => {this.clientRef = client}}
+                        />
+                        <Modal
+                            title="直接聊"
+                            visible={formVisible}
+                            onCancel={this.handleCancel}
+                            footer={null}
+                        >
+                            <Card title={
+                                <div style={{display: "flex"}}>
+                                    <div>邀请加入</div>
+                                    <Button style={{alignSelf: "center", margin: "0 20px 0 20px"}}
+                                            onClick={this.handleGenerateToken.bind(this)}
+                                            loading={this.state.conversationTokenGenerateButtonLoading}
+                                    >生成链接
+                                    </Button>
+                                </div>
+                            }>
+                                <Input value={conversationToken} addonAfter={<ArrowRightOutlined onClick={this.handleCancel.bind(this)}/>}/>
+                                <Text style={{color: "rgba(0,0,0,0.4)"}}>直接复制当前token即可</Text>
+                            </Card>
+                            <Divider />
+                            <Card title="加入一个">
+                                <Input.Search style={{}} defaultValue="" onSearch={this.handleSearchToken.bind(this)}/>
+                            </Card>
+                        </Modal>
+                    </div> :
+                    <SockJsClient url="http://localhost:8080/ws"
+                                  topics={['/topic/channel/' + friend.token]}
+                                  onMessage={this.handleReceiveMessage.bind(this)}
+                                  ref={(client) => {this.clientRef = client}}
+                    />
                 }
 
                 <div className="user-conversation-header" style={{border: "2px solid gray", margin: "10px", display: "flex"}}>
@@ -281,6 +370,7 @@ class UserConversation extends React.Component{
                         if (conversationFormVisible) {
                             this.props.formVisibleActions.setFormVisible(true);
                             this.props.tokenReceivedActions.setTokenReceived(false);
+                            this.setState({endConversationButtonClicked: true});
                         }
                     }} style={{margin: "20px 20px 20px auto"}}>
                         结束会话
@@ -291,7 +381,7 @@ class UserConversation extends React.Component{
                 </div>
                 <div className="user-conversation-input"
                      style={{display: 'flex', margin: "10px", justifyContent: "flex-end"}}>
-                    <div className="input-selector" style={{margin: "20px 20px 20px 20px", flex: "1"}}>
+                    <div className="input-selector" style={{margin: "10px", flex: "1"}}>
                         <div className="input-upload" style={{margin: "10px"}}>
                             <div className="input-upload-buttons">
                                 <Button icon={<SmileOutlined />} shape="circle" type="primary">

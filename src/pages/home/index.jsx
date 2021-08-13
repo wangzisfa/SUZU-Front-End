@@ -33,7 +33,8 @@ class UserHomePage extends React.Component {
         this.state = {
             collapsed: false ,
             showUsername: true ,
-            theme: "dark"
+            theme: "dark" ,
+            usernameColor: "white"
         }
 
         // let userProfile = getWithToken(baseUrl + "/profile", localStorage.getItem("authorization"));
@@ -72,7 +73,17 @@ class UserHomePage extends React.Component {
     // }
 
     handleChangeTheme(e) {
-        e ? this.setState({theme: "light"}) : this.setState({theme: "dark"});
+        e ? this.setState(() => {
+            return {
+                theme: "light" ,
+                usernameColor: "black"
+            }
+        }) : this.setState(() => {
+            return {
+                theme: "dark" ,
+                usernameColor: "white"
+            }
+        });
     }
 
     handleClickMenu(e) {
@@ -177,7 +188,8 @@ class UserHomePage extends React.Component {
                     <Sider collapsible
                            collapsed={collapsed}
                            onCollapse={this.onCollapse}
-                           theme={theme}>
+                           theme={theme}
+                    >
                         <div className="user-icon" >
                             <Avatar size={60} src={userAvatar}/>
                         </div>
@@ -186,7 +198,7 @@ class UserHomePage extends React.Component {
                                 <Title style={{
                                     fontSize: "24px",
                                     marginLeft: "5px",
-                                    color: "white",
+                                    color: this.state.usernameColor,
                                     display: "flex",
                                     justifyContent: "center"
                                 }} >
@@ -223,10 +235,27 @@ class UserHomePage extends React.Component {
                                 设置
                             </Menu.Item>
                         </Menu>
-                        <div style={{color: "white", margin: "15px"}}>
-                            <Switch onChange={this.handleChangeTheme.bind(this)}
-                                    unCheckedChildren="邪恶"
-                                    checkedChildren="守序"/>
+                        <div style={{color: "white",
+                            margin: "570px 0 0 0" ,
+                            display: "flex" ,
+                            justifyContent: "center" ,
+                        }}>
+                            {
+                                showUsername ?
+                                    <>
+                                        <div style={{color: this.state.usernameColor, margin: "0 20px 0 0"}}>
+                                            主题
+                                        </div>
+                                        <Switch onChange={this.handleChangeTheme.bind(this)}
+                                                unCheckedChildren="邪恶"
+                                                checkedChildren="守序"/>
+                                    </> :
+                                    <>
+                                        <Switch onChange={this.handleChangeTheme.bind(this)}/>
+                                    </>
+                            }
+
+
                         </div>
                     </Sider>
                     <Layout className="site-layout">
@@ -240,7 +269,7 @@ class UserHomePage extends React.Component {
                                      width: "50%" ,
                                      height: "100%"
                                  }}>
-                                <Search placeholder="input search text"
+                                <Search placeholder="全局搜索"
                                         enterButton
                                         onSearch={() => {
 
@@ -260,6 +289,7 @@ class UserHomePage extends React.Component {
                                 <Button onClick={() => {
                                     localStorage.removeItem("authorization");
                                     localStorage.removeItem("role");
+                                    localStorage.removeItem("conversationToken");
                                 }}
                                         type="primary"
                                         style={{

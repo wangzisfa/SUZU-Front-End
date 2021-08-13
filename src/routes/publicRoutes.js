@@ -1,4 +1,5 @@
 import HomePage from "../pages/base/HomePage";
+import UserHomePage from "../pages/home";
 
 const publicRoutes = [
     {
@@ -6,13 +7,13 @@ const publicRoutes = [
         component: HomePage ,
         exact: true
     } ,
-    // {
-    //     path: '/home' ,
-    //     component:  UserHomePage ,
-    //     exact: true ,
-    //     role: 'user' ,
-    //     backUrl: '/'
-    // }
+    {
+        path: '/home' ,
+        component:  UserHomePage ,
+        exact: true ,
+        role: 'user' ,
+        backUrl: '/'
+    }
 ]
 
 export default publicRoutes;

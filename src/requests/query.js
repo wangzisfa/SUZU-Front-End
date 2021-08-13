@@ -53,3 +53,12 @@ export function getConversationToken(url, data) {
         }
     })
 }
+
+export function subscribeUser(url, data) {
+    return axios.get(url, {
+        params: {
+            "subscribeName": data.subscribeName ,
+            "subscribeTo": data.subscribeTo
+        }
+    })
+}
