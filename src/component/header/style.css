@@ -1,0 +1,41 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.title {
+    color: black;
+}
+
+.buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.ant-switch {
+    background-color: rgb(142, 134, 134)
+}
+
+.ant-switch-checked {
+    background-color: #1890ff;
+}
+
+.theme-switch {
+    margin-right: 20px;
+}
+
+.login-btn {
+    margin-right: 20px;
+}
+
+.menu {
+    border-bottom-color: transparent;
+    margin-left: 180px;
+    /*margin-right: 50px;*/
+}
+
+.item {
+    margin-left: 30px;
+}
